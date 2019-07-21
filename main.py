@@ -14,49 +14,38 @@ def ncr(n, r):
 
 if __name__ == "__main__":
 
-    survey_pop = 2  # survey population
-    Y = 0.5  # equal possibility of liking vs not liking product
-    # P(Y|X)'s, known values set here
-    P_YgX0 = [0.5, 0.5]
-    P_YgX1 = [0.5, 0.5]
-    P_YgX2 = [0.5, 0.5]
+    Y1 = 0.1  # market share
+    Y2 = 0.2  # market share
 
-    givens = {0: P_YgX0, 1: P_YgX1, 2: P_YgX2}
+    P_Y1 = 0.8  # probability of market share = 0.1
+    P_Y2 = 0.2  # probability of market share = 0.2
+
+    # P(Y1|X)'s, known values set here
+    # P(Y2|X)'s, known values set here
+    P_Y1gX = []
+    P_Y2gX = []
+    survey_pop = 2  # number of participants/ survey population
+    for i in range(0, survey_pop):
+        P_Y1gX.append(0.5)
+        P_Y2gX.append(0.5)
 
     # P(Y, X), to be set
     ands = {0: [], 1: [], 2: []}
     ands2 = {0: [], 1: [], 2: []}
 
-    for i in range(survey_pop + 1):
-        '''
-        X = probability of current branch happening
-        Y1 = probability of market share greater than y%, 0.5
-        Y2 = probability of market share less than y%, 0.5
+    for i in range(0, survey_pop + 1):
 
-        variables
-        probability of X = Binomial
-        probability of Y and X = algebra
-        probability of Y given X = known value
-        '''
-
-        # finding P(X)
-        P_X = ncr(survey_pop, i) * (Y) ** survey_pop
+        # finding P(X=i|Y1)
+        P_XgY1 = ncr(survey_pop, i) * ((Y1) ** (i)) * ((1 - Y1) ** (survey_pop - i))
+        # finding P(X=i|Y2)
+        P_XgY2 = ncr(survey_pop, i) * ((Y2) ** (i)) * ((1 - Y2) ** (survey_pop - i))
 
         # Finding P(X, Y1), P(X, Y2)
-        P_XY1 = givens[i][0] * P_X
-        P_XY2 = givens[i][1] * P_X
+        P_XY1 = P_XgY1 * P_Y1
+        P_XY2 = P_XgY2 * P_Y2
 
         list = [P_XY1, P_XY2]
         ands[i] = list
 
-        # Survey 2
-        for j in range(survey_pop + 1):
-            # P(X2)
-            P_X2 = ncr(survey_pop, j) * (Y) ** survey_pop
-
-            # P(X2, Y|X1)
-            ands2[i].append(givens[i][0] * P_X2)
-            ands2[i].append(givens[i][1] * P_X2)
-
     print(ands)
-    print(ands2)
+    # print(ands2)
