@@ -1,6 +1,14 @@
 # msci_452_project
 
-to download pygraphviz:
+to run on your machine:
+
+1. `$ git clone git@github.com:mllemango/msci_452_project.git`
+2. `$ cd msci_452_project`
+3. `$ pip install -r requirements.txt`
+4. `$ python recursive.py`
+
+
+There is a (currently commented out) graphing function, if you want to use, you'll need to download pygraphviz:
 
 http://pygraphviz.github.io/documentation/pygraphviz-1.5/install.html
 
