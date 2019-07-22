@@ -4,6 +4,11 @@ from functools import reduce
 # import pygraphviz as pgv
 from prettytable import PrettyTable
 
+# CHANGE VARIABLES HERE
+SURVEY_POP = 5
+repeats = 5
+
+
 # setting market share variables
 Y1 = 0.14  # market share 1
 Y2 = 0.15  # market share 2
@@ -16,7 +21,6 @@ P_Y2 = 0.1667  # probability of market share = 0.15
 P_Y3 = 0.3333
 P_Y4 = 0.1667
 P_Y = [P_Y1, P_Y2, P_Y3, P_Y4]
-SURVEY_POP = 2
 
 # G = pgv.AGraph()
 
@@ -80,7 +84,12 @@ def prior(intersections):
 
 def bayesian_table(intersections, repeats, prev_node, count):
     '''
-    recursive function to calculate survey in iterations
+    recursive function to calculate survey results in iterations
+
+    intersections: list of intersection values P(X, Y)s
+    repeats: number of repeats
+    prev_node: previous node name, used for record keeping
+    count: survey 1, used for record keeping
     '''
 
     # stopping condition, currently just counting repeats
@@ -97,11 +106,16 @@ def bayesian_table(intersections, repeats, prev_node, count):
 
         cur_x = "X" + str(count) + "=" + str(i) + ', \n' + prev_node
         cur_survey = 'S' + str(count + 1) + ": " + cur_x
-        print('prior probabilities', P_Y, 'for', cur_x)
 
-        intersections2 = get_intersections(Y, P_Y)
+        # making a pretty table
+        pretty_table = PrettyTable()
+        pretty_table.field_names = Y
+        pretty_table.add_row(P_Y)
 
-        # print('for x = ' + str(i), intersections2)
+        print('prior probabilities for', cur_x, pretty_table)
+        # print(pretty_table)
+
+        intersections2 = get_intersections(Y, P_Y)  # getting new intersection for next survey
 
         '''
         # drawing nodes in graph
@@ -118,14 +132,13 @@ def bayesian_table(intersections, repeats, prev_node, count):
 
 if __name__ == "__main__":
 
-    intersections = []  # our A, B, C, D, ... aka our P(X, Y)'s
-    intersections = get_intersections(Y, P_Y)
-
-    print('initial intersections', intersections)
+    # getting started
+    intersections = get_intersections(Y, P_Y)  # our A, B, C, D, ... aka our P(X, Y)'s
 
     # G.add_edge('start', 'S1')
 
-    bayesian_table(intersections, 4, 'S1', 1)
+    # recursion!
+    bayesian_table(intersections, repeats, 'S1', 1)
 
     # G.layout(prog='dot')  # use dot
     # G.draw('graph.png')  # write previously positioned graph to PNG file
