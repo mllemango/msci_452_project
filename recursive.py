@@ -106,6 +106,10 @@ def bayesian_table(intersections, repeats, prev_node, count):
         return ""
 
     for i in range(SURVEY_POP + 1):
+        # book keeping
+        cur_x = "X" + str(count) + "=" + str(i) + ', \n' + prev_node
+        cur_survey = 'S' + str(count + 1) + ": " + cur_x
+
         j = i * len(Y)  # getting our index for intersections
         local_intersections = []
         for k in range(j, j + len(Y)):
@@ -115,10 +119,8 @@ def bayesian_table(intersections, repeats, prev_node, count):
         # if our list is empty, it means prior probability is so unprobable
         # we should probably stop looking down this route
         if len(P_Y) == 0:
+            print("NOT PROBABLE AT ALL", cur_x)
             return ''
-
-        cur_x = "X" + str(count) + "=" + str(i) + ', \n' + prev_node
-        cur_survey = 'S' + str(count + 1) + ": " + cur_x
 
         # making a pretty table
         pretty_table = PrettyTable()
