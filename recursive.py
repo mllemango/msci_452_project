@@ -1,10 +1,12 @@
 import numpy as np
 import operator as op
 from functools import reduce
+import pygraphviz as pgv
 
 Y1 = 0.1  # market share 1
 Y2 = 0.2  # market share 2
 Y = [Y1, Y2]
+G = pgv.AGraph()
 
 
 def ncr(n, r):
@@ -55,26 +57,33 @@ def prior(A, B):
     return [A / A_B, B / A_B]
 
 
-def bayesian_table(intersections, repeats):
+def bayesian_table(intersections, repeats, prev_node, count):
     '''
     recursive function to calculate survey in iterations
     '''
 
-    if (repeats == 1):
-        print("done")
+    # stopping condition
+    if (repeats == 0):
         return ""
 
-    SURVEY_POP = len(intersections) / 2
+    SURVEY_POP = int(len(intersections) / 2)
+
     for i in range(SURVEY_POP):
-        count = i * 2  # getting our index for intersections
-        print('prior probabilities', intersections[count], intersections[count + 1])
+        j = i * 2  # getting our index for intersections
+        print('prior probabilities', intersections[j], intersections[j + 1])
         P_Y = prior(intersections[count], intersections[count + 1])  # new P(Y| various X's)
 
         intersections2 = get_intersections(Y, P_Y)
 
         print('for x = ' + str(i), intersections2)
 
-        bayesian_table(intersections2, repeats - 1)
+        # adding this to the graph
+        cur_x = " X" + str(count) + "=" + str(i) + ' ' + prev_node
+        cur_survey = 'S' + str(count+1) + "," + cur_x
+        G.add_edge(prev_node, cur_x)
+        G.add_edge(cur_x, cur_survey)
+
+        bayesian_table(intersections2, repeats - 1, cur_survey, count+1)
 
 
 if __name__ == "__main__":
@@ -89,4 +98,10 @@ if __name__ == "__main__":
 
     print('initial intersections', intersections)
 
-    bayesian_table(intersections, 3)
+    G.add_edge('start', 'S1')
+
+    bayesian_table(intersections, 4, 'S1', 1)
+
+    G.layout()  # default to neato
+    G.layout(prog='dot')  # use dot
+    G.draw('graph.png')  # write previously positioned graph to PNG file
