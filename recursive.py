@@ -66,24 +66,29 @@ def bayesian_table(intersections, repeats, prev_node, count):
     if (repeats == 0):
         return ""
 
-    SURVEY_POP = int(len(intersections) / 2)
+    SURVEY_POP = int(len(intersections) / len(Y))  # calulating survey population from number of elements in intersection
 
     for i in range(SURVEY_POP):
         j = i * 2  # getting our index for intersections
         print('prior probabilities', intersections[j], intersections[j + 1])
-        P_Y = prior(intersections[count], intersections[count + 1])  # new P(Y| various X's)
+        P_Y = prior(intersections[j], intersections[j + 1])  # new P(Y| various X's)
 
         intersections2 = get_intersections(Y, P_Y)
 
         print('for x = ' + str(i), intersections2)
 
         # adding this to the graph
-        cur_x = " X" + str(count) + "=" + str(i) + ' ' + prev_node
-        cur_survey = 'S' + str(count+1) + "," + cur_x
+        A = intersections[j]
+        B = intersections[j + 1]
+        A_B = round(A + B, 4)
+        cur_x = "X" + str(count) + "=" + str(i) + ' P(X)=' + str(A_B) + ', \n' + prev_node
+
+        # cur_X = "X" + str(count) + "=" + str(i) + ' P=' + str()
+        cur_survey = 'S' + str(count + 1) + ": " + cur_x
         G.add_edge(prev_node, cur_x)
         G.add_edge(cur_x, cur_survey)
 
-        bayesian_table(intersections2, repeats - 1, cur_survey, count+1)
+        bayesian_table(intersections2, repeats - 1, cur_survey, count + 1)
 
 
 if __name__ == "__main__":
@@ -102,6 +107,5 @@ if __name__ == "__main__":
 
     bayesian_table(intersections, 4, 'S1', 1)
 
-    G.layout()  # default to neato
     G.layout(prog='dot')  # use dot
     G.draw('graph.png')  # write previously positioned graph to PNG file
