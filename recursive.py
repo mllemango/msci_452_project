@@ -5,7 +5,7 @@ from functools import reduce
 from prettytable import PrettyTable
 
 # CHANGE VARIABLES HERE
-SURVEY_POP = 5
+SURVEY_POP = 10
 repeats = 5
 
 
@@ -74,6 +74,15 @@ def prior(intersections):
     '''
 
     total = sum(intersections)
+
+    # so sometimes, if the population size is big enough
+    # the probabilities of the market share is so low it gets rounded to 0
+    # which means total = 0, and our division later throws an error
+    # so returning an empty list into our recursive function to let it know
+    # this path is done for
+    if total == 0:
+        return []
+
     priors = []
     for i in range(len(intersections)):
         prior = round(intersections[i] / total, 5)
@@ -103,6 +112,10 @@ def bayesian_table(intersections, repeats, prev_node, count):
             local_intersections.append(intersections[k])
 
         P_Y = prior(local_intersections)  # new P(Y| various X's)
+        # if our list is empty, it means prior probability is so unprobable
+        # we should probably stop looking down this route
+        if len(P_Y) == 0:
+            return ''
 
         cur_x = "X" + str(count) + "=" + str(i) + ', \n' + prev_node
         cur_survey = 'S' + str(count + 1) + ": " + cur_x
