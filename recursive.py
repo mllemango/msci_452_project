@@ -1,12 +1,24 @@
 import numpy as np
 import operator as op
 from functools import reduce
-import pygraphviz as pgv
+# import pygraphviz as pgv
+from prettytable import PrettyTable
 
-Y1 = 0.1  # market share 1
-Y2 = 0.2  # market share 2
-Y = [Y1, Y2]
-G = pgv.AGraph()
+# setting market share variables
+Y1 = 0.14  # market share 1
+Y2 = 0.15  # market share 2
+Y3 = 0.17
+Y4 = 0.2
+Y = [Y1, Y2, Y3, Y4]
+
+P_Y1 = 0.3333  # probability of market share = 0.14
+P_Y2 = 0.1667  # probability of market share = 0.15
+P_Y3 = 0.3333
+P_Y4 = 0.1667
+P_Y = [P_Y1, P_Y2, P_Y3, P_Y4]
+SURVEY_POP = 2
+
+# G = pgv.AGraph()
 
 
 def ncr(n, r):
@@ -32,11 +44,10 @@ def get_intersections(Y, P_Y):
     P_Y: probability of market share y occuring, our A/(A+B)
     intersections: our A, B, C ... values aka our P(X, Y)'s
     '''
-    SURVEY_POP = len(Y)
 
     intersections = []
     for i in range(SURVEY_POP + 1):
-        for j in range(len(Y)):
+        for j in range(len(P_Y)):
             # calculating P(X=i| Y=j) using binominal distribution
             P_XgY = binomial(SURVEY_POP, i, Y[j])
 
@@ -46,15 +57,25 @@ def get_intersections(Y, P_Y):
 
             # print(P_XgY, P_Y[j], P_XY)
             intersections.append(P_XY)
+
     return intersections
 
 
-def prior(A, B):
+def prior(intersections):
     '''
-    calculates prior distribution, A/(A+B)
-    '''
+    calculates prior/posterior distribution, A/(A+B)
+    ex. for 2 market shares
     A_B = A + B
     return [A / A_B, B / A_B]
+    '''
+
+    total = sum(intersections)
+    priors = []
+    for i in range(len(intersections)):
+        prior = round(intersections[i] / total, 5)
+        priors.append(prior)
+
+    return priors
 
 
 def bayesian_table(intersections, repeats, prev_node, count):
@@ -62,50 +83,49 @@ def bayesian_table(intersections, repeats, prev_node, count):
     recursive function to calculate survey in iterations
     '''
 
-    # stopping condition
+    # stopping condition, currently just counting repeats
     if (repeats == 0):
         return ""
 
-    SURVEY_POP = int(len(intersections) / len(Y))  # calulating survey population from number of elements in intersection
+    for i in range(SURVEY_POP + 1):
+        j = i * len(Y)  # getting our index for intersections
+        local_intersections = []
+        for k in range(j, j + len(Y)):
+            local_intersections.append(intersections[k])
 
-    for i in range(SURVEY_POP):
-        j = i * 2  # getting our index for intersections
-        print('prior probabilities', intersections[j], intersections[j + 1])
-        P_Y = prior(intersections[j], intersections[j + 1])  # new P(Y| various X's)
+        P_Y = prior(local_intersections)  # new P(Y| various X's)
+
+        cur_x = "X" + str(count) + "=" + str(i) + ', \n' + prev_node
+        cur_survey = 'S' + str(count + 1) + ": " + cur_x
+        print('prior probabilities', P_Y, 'for', cur_x)
 
         intersections2 = get_intersections(Y, P_Y)
 
-        print('for x = ' + str(i), intersections2)
+        # print('for x = ' + str(i), intersections2)
 
-        # adding this to the graph
+        '''
+        # drawing nodes in graph
+        cur_x = "X" + str(count) + "=" + str(i) + ' P(X)=' + str(A_B) + ', \n' + prev_node
         A = intersections[j]
         B = intersections[j + 1]
         A_B = round(A + B, 4)
-        cur_x = "X" + str(count) + "=" + str(i) + ' P(X)=' + str(A_B) + ', \n' + prev_node
-
-        # cur_X = "X" + str(count) + "=" + str(i) + ' P=' + str()
-        cur_survey = 'S' + str(count + 1) + ": " + cur_x
         G.add_edge(prev_node, cur_x)
         G.add_edge(cur_x, cur_survey)
+        '''
 
         bayesian_table(intersections2, repeats - 1, cur_survey, count + 1)
 
 
 if __name__ == "__main__":
-    # setting market share variables
-
-    P_Y1 = 0.8  # probability of market share = 0.1
-    P_Y2 = 0.2  # probability of market share = 0.2
-    P_Y = [P_Y1, P_Y2]
 
     intersections = []  # our A, B, C, D, ... aka our P(X, Y)'s
     intersections = get_intersections(Y, P_Y)
 
     print('initial intersections', intersections)
 
-    G.add_edge('start', 'S1')
+    # G.add_edge('start', 'S1')
 
     bayesian_table(intersections, 4, 'S1', 1)
 
-    G.layout(prog='dot')  # use dot
-    G.draw('graph.png')  # write previously positioned graph to PNG file
+    # G.layout(prog='dot')  # use dot
+    # G.draw('graph.png')  # write previously positioned graph to PNG file
