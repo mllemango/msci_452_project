@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import operator as op
 from functools import reduce
@@ -5,8 +6,9 @@ from functools import reduce
 from prettytable import PrettyTable
 
 # CHANGE VARIABLES HERE
-SURVEY_POP = 10
-repeats = 5
+SURVEY_POP = 5
+repeats = 10
+accept = 0.95
 
 
 # setting market share variables
@@ -23,6 +25,7 @@ P_Y4 = 0.1667
 P_Y = [P_Y1, P_Y2, P_Y3, P_Y4]
 
 # G = pgv.AGraph()
+results = open("results.txt", "w")
 
 
 def ncr(n, r):
@@ -91,7 +94,7 @@ def prior(intersections):
     return priors
 
 
-def bayesian_table(intersections, repeats, prev_node, count):
+def bayesian_table(intersections, repeats, accept, prev_node, count):
     '''
     recursive function to calculate survey results in iterations
 
@@ -119,16 +122,22 @@ def bayesian_table(intersections, repeats, prev_node, count):
         # if our list is empty, it means prior probability is so unprobable
         # we should probably stop looking down this route
         if len(P_Y) == 0:
-            print("NOT PROBABLE AT ALL", cur_x)
+            results.write("NOT PROBABLE AT ALL \n")
+            results.write(cur_x)
+            results.write('\n')
             return ''
 
-        # making a pretty table
-        pretty_table = PrettyTable()
-        pretty_table.field_names = Y
-        pretty_table.add_row(P_Y)
+        # making a pretty table if prior is high enough
+        for probability in P_Y:
+            if probability >= accept:  # stopping condition
+                pretty_table = PrettyTable()
+                pretty_table.field_names = Y
+                pretty_table.add_row(P_Y)
 
-        print('prior probabilities for', cur_x, pretty_table)
-        # print(pretty_table)
+                results.write('prior probabilities for ' + cur_x + '\n')
+                results.write(pretty_table.get_string())
+                results.write('\n')
+                return ''
 
         intersections2 = get_intersections(Y, P_Y)  # getting new intersection for next survey
 
@@ -142,18 +151,25 @@ def bayesian_table(intersections, repeats, prev_node, count):
         G.add_edge(cur_x, cur_survey)
         '''
 
-        bayesian_table(intersections2, repeats - 1, cur_survey, count + 1)
+        bayesian_table(intersections2, repeats - 1, accept, cur_survey, count + 1)
 
 
 if __name__ == "__main__":
 
     # getting started
+    start = time.time()
+
     intersections = get_intersections(Y, P_Y)  # our A, B, C, D, ... aka our P(X, Y)'s
 
+    results.write("start!\n")
     # G.add_edge('start', 'S1')
 
     # recursion!
-    bayesian_table(intersections, repeats, 'S1', 1)
+    bayesian_table(intersections, repeats, accept, 'S1', 1)
+
+    end = time.time()
+    total = str(end - start)
+    results.write("recursive.py took " + total + 's')
 
     # G.layout(prog='dot')  # use dot
     # G.draw('graph.png')  # write previously positioned graph to PNG file
