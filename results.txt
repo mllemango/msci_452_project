@@ -1,2 +1,0 @@
-start!
-recursive.py took 0.003898143768310547s
