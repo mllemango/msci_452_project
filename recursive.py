@@ -100,6 +100,7 @@ def bayesian_table(intersections, repeats, accept, prev_node, count):
 
     intersections: list of intersection values P(X, Y)s
     repeats: number of repeats
+    accept: the confidence we are ok with terminating the surveys at
     prev_node: previous node name, used for record keeping
     count: survey 1, used for record keeping
     '''
