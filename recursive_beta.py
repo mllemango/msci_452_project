@@ -73,29 +73,28 @@ def bayesian_table(n, r, repeats, accept, prev_node, count):
     # stopping condition, currently just counting repeats
     if (repeats == 0):
         return ""
-
-
-
+    new_n = n + SURVEY_POP
     for i in range(SURVEY_POP + 1):
 
         # book keeping
-        cur_x = "X=" + str(i) + ', \n' + prev_node
+        cur_x = "X" + str(count) + "=" + str(i) + ', \n' + prev_node
 
         # calculating new beta distr values
-
-        n = n + n
         new_r = r + i
-        print('this many people liked it: ' + str(new_r))
         for j in range(len(Y)):
             P = Y[j]
-            posterior = beta(new_r, n, P)
+            posterior = beta(new_r, new_n, P)
+            print(P, posterior, cur_x)
 
+            # checking for stopping condition
             if posterior >= accept:
-                print('stopped at ' + str(posterior))
-                print(cur_x)
-                return ''
 
-            bayesian_table(n, new_r, repeats - 1, accept, cur_x, count + 1)
+                results.write(str(P) + '\n')
+                results.write('stopped at ' + str(posterior) + " n: " + str(new_n) + ", r: " + str(new_r) + '\n')
+                results.write(cur_x)
+                results.write('\n')
+                return ''
+            bayesian_table(new_n, new_r, repeats - 1, accept, cur_x, count + 1)
 
 
 if __name__ == "__main__":
@@ -105,9 +104,10 @@ if __name__ == "__main__":
     results.write("start!\n")
     # G.add_edge('start', 'S1')
 
-    # recursion!
+    # recursion! starting the recursion with r = 0, r = 1, ... r = 5
     for i in range(SURVEY_POP+1):
-        bayesian_table(SURVEY_POP, i, repeats, accept, 'X=' + str(i), 1)
+        cur_x = 'X1=' + str(i) + '\n'
+        bayesian_table(SURVEY_POP, i, repeats, accept, cur_x, 2)
 
     end = time.time()
     total = str(end - start)
